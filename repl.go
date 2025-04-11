@@ -7,10 +7,12 @@ import (
 	"strings"
 
 	"github.com/ModestMeowth/boot.dev-pokedexcli/internal/pokeapi"
+	"github.com/ModestMeowth/boot.dev-pokedexcli/internal/pokecache"
 )
 
 type config struct {
     pokeapiClient pokeapi.Client
+    pokeapiCache pokecache.Cache
     nextLocationsURL *string
     prevLocationsURL *string
 }
@@ -18,7 +20,7 @@ type config struct {
 type cliCommand struct {
     name string
     description string
-    callback func(*config) error
+    callback func(*config, ...string) error
 }
 
 func startRepl(cfg *config) {
@@ -36,7 +38,7 @@ func startRepl(cfg *config) {
 
         command, exists := getCommands()[commandName]
         if exists {
-            err := command.callback(cfg)
+            err := command.callback(cfg, words[1:]...)
             if err != nil {
                 fmt.Println(err)
             }
@@ -60,6 +62,11 @@ func getCommands() map[string]cliCommand {
             name: "help",
             description: "Displays a help message",
             callback: commandHelp,
+        },
+        "explore": {
+            name: "explore",
+            description: "List the pokemans at a location",
+            callback: commandExplore,
         },
         "map": {
             name: "map",
